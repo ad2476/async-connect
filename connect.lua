@@ -3,7 +3,7 @@
 
 local async = require 'async'
 local super = require 'super'
-local jshelper = require 'helper'	
+local jshelper = require 'helpers'	
 
 -- Create a new middleware server
 -- Returns a function
