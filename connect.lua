@@ -5,7 +5,7 @@ local async = require 'async'
 local super = require 'super'
 local jshelper = require 'helpers'	
 
--- Create a new middleware server
+-- Create a new async-connect server
 -- Returns a function
 function createServer()
 	function app(request, response, Next)
@@ -20,6 +20,5 @@ function createServer()
 	return app
 end
 
--- createServer() is the 'module' we 'export' when used by require('middleware')
 return createServer
 

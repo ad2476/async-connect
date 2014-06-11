@@ -66,10 +66,49 @@ function app.handle(self, req, res, out)
 			return
 		end
 
-	-- A bunch of stuff is inside a try...catch statement in Connect's JS code
-	-- No idea how to make a try...catch block in Lua - there's pcall but that's for individual functions...
-	-- TODO: Finish proto.handle()
-	
+		-- A bunch of stuff is inside a try...catch statement in Connect's JS code
+		-- No idea how to make a try...catch block in Lua - there's pcall but that's for individual functions...
+		-- TODO: Finish proto.handle()
+		status, e = pcall(function()
+			path = parseUrl(req).path
+			if not path then path = '/' end
+			
+			-- Skip this layer if the route doesn't match
+			if path:lower() ~= layer.route:lower() then return Next(err) end
+
+			c = path:sub(#layer.route+1, #layer.route+1)
+			if c and '/' ~= c and '.' ~= c then return Next(err) end
+
+			-- Call the layer handler and trim off the part of the url that matches the route
+			removed = layer.route
+			req.url = protohost + req.url:sub(#protohost + #removed + 1)
+
+			-- Ensure leading slash
+			if not fqdn and '/' ~= req.url:sub(1,1) then
+				req.url = '/' + req.url
+				slashAdded = true
+			end
+			
+			local arity = #layer.handle
+			if err then
+				if arity == 4  then
+					layer.handle(err, req, res, Next)
+				else Next(err) end
+			elseif arity < 4 then
+				layer.handle(req, res, Next)	
+			else Next() end
+		end)
+		if ~status then
+			Next(e)
+		end
+	end
+	Next()	
+end
+
+--- Listen for connections ---
+function app.listen(domain, handler)
+	return async.http.listen(domain, handler)
+ 
 end
 
 return app
